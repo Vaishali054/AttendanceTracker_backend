@@ -13,7 +13,7 @@ dotenv.config()
 
 // const { default: mongoose } = require('mongoose');
 
-
+const REACT_APP_API_URL=process.env.REACT_APP_API_URL
 app.use('/uploads', express.static('uploads'));
 app.use(cors());
 app.use(express.json());
@@ -324,7 +324,7 @@ app.get('/api/subjectDelete/:subjectName/:userId', async (req, res) => {
   const subjectName = req.params.subjectName;
   const userId = req.params.userId;
   try {
-    let response = await axios.get(`${process.env.REACT_APP_API_URL}/timetableId/${subjectName}/${userId}`);
+    let response = await axios.get(`${REACT_APP_API_URL}/timetableId/${subjectName}/${userId}`);
     const responseData = await response.data;
     if(responseData.length>0){
     await Attendance.deleteMany(
