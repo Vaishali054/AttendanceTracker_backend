@@ -1,17 +1,15 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
-require('./db/config')
+require('../db/config')
 const mongoose=require('mongoose')
-const User=require("./db/user");
-const Timetable=require('./db/timetable')
-const Subjects=require('./db/subjects');
-const Attendance=require('./db/attendance');
+const User=require("../db/user");
+const Timetable=require('../db/timetable')
+const Subjects=require('../db/subjects');
+const Attendance=require('../db/attendance');
 const axios = require('axios');
 const dotenv= require('dotenv')
 dotenv.config()
-
-// const { default: mongoose } = require('mongoose');
 
 // const corsOptions = {
 //   origin: "https://attendancetracker-frontend.onrender.com", // frontend URI (ReactJS)
