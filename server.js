@@ -13,15 +13,43 @@ dotenv.config()
 
 // const { default: mongoose } = require('mongoose');
 
+// const corsOptions = {
+//   origin: "https://attendancetracker-frontend.onrender.com", // frontend URI (ReactJS)
+// }
+const corsOptions = {
+  origin: "http://localhost:3000", // frontend URI (ReactJS)
+}
 const REACT_APP_API_URL=process.env.REACT_APP_API_URL
 app.use('/uploads', express.static('uploads'));
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
+const mongodb_url = process.env.MONGO_URL;
 
+if (!mongodb_url) {
+  console.error("MONGODB_URI environment variable is not defined.");
+} else {
+  mongoose.connect(mongodb_url, { dbName: "AttendanceTracker" });
+
+  const db = mongoose.connection;
+
+  db.once("open", () => {
+    console.log("MongoDB connected");
+
+    const PORT= parseInt(process.env.API_PORT || "8000", 10);
+
+    app.listen(PORT, () => {
+      console.log("Server listening on port:", PORT);
+    });
+  });
+
+  db.on("error", (error) => {
+    console.error("MongoDB connection error:", error);
+  });
+}
 
 app.post("/api/Signup", async (req,res)=>{
-  mongoose.connect(process.env.MONGO_URL)
+  
   const user=new User(req.body)
   let result= await user.save();
   result= result.toObject();
@@ -29,7 +57,7 @@ app.post("/api/Signup", async (req,res)=>{
   res.send(result)
 })
 app.post("/api/subjects", async (req,res)=>{
-  mongoose.connect(process.env.MONGO_URL)
+
   const subject=new Subjects(req.body)
   let result= await subject.save();
   result= result.toObject();
@@ -42,7 +70,7 @@ app.post("/api/subjects", async (req,res)=>{
 
 
 app.post('/api/login',async (req,res)=>{
-  mongoose.connect(process.env.MONGO_URL)
+  
   if(req.body.password && req.body.email){
     const user = await User.findOne(req.body).select("-password");
     if(user){
@@ -60,7 +88,7 @@ app.post('/api/login',async (req,res)=>{
 })
 
 app.post('/api/timetable-input',async(req,res)=>{
-  mongoose.connect(process.env.MONGO_URL)
+  
   const timetable=new Timetable(req.body)
   let result= await timetable.save();
   result= result.toObject();
@@ -72,7 +100,7 @@ app.post('/api/timetable-input',async(req,res)=>{
 
 
 app.get('/api/timetable/:userId/:dayOfWeek', async (req, res) => {
-  mongoose.connect(process.env.MONGO_URL)
+  
   const userId = req.params.userId;
   const dayOfWeek = req.params.dayOfWeek;
   
@@ -118,7 +146,7 @@ app.get('/api/timetable/:userId/:dayOfWeek', async (req, res) => {
 
 
 app.get('/api/subjects/:userId',async(req,res)=>{
-  mongoose.connect(process.env.MONGO_URL)
+  
   const userId = req.params.userId;
   
 
@@ -140,7 +168,7 @@ app.get('/api/subjects/:userId',async(req,res)=>{
     }
 })
 app.get('/api/subjectsName/:userId',async(req,res)=>{
-  mongoose.connect(process.env.MONGO_URL)
+  
   const userId = req.params.userId;
   
 
@@ -164,7 +192,7 @@ async function checkAttendanceMarked(timetableId) {
   try {
     const today = new Date();
     const providedDate = new Date(today.toDateString());
-    mongoose.connect(process.env.MONGO_URL)
+  
     const attendanceRecord = await Attendance.findOne({
       timetableId,
       date: { $gte: providedDate, $lt: new Date(providedDate.getTime() + 24 * 60 * 60 * 1000) },
@@ -178,7 +206,7 @@ async function checkAttendanceMarked(timetableId) {
 }
 
  app.post('/api/attendance/:userId/:Id',async(req,res)=>{
-  mongoose.connect(process.env.MONGO_URL)
+  
   try{
     const userId = req.params.userId;
     const Id=req.params.Id
@@ -203,7 +231,7 @@ async function checkAttendanceMarked(timetableId) {
  })
 
 app.get('/api/attendance/:timetableId',async(req,res)=>{
-  mongoose.connect(process.env.MONGO_URL)
+  
   const timetableId=req.params.timetableId
   if(await checkAttendanceMarked(timetableId)){
     const today = new Date();
@@ -224,7 +252,7 @@ app.get('/api/attendance/:timetableId',async(req,res)=>{
 })
 
 app.get('/api/attendanceMarkerIdfetcher/:SubjectName/:userId', async (req, res) => {
-  mongoose.connect(process.env.MONGO_URL)
+  
   const SubjectName = req.params.SubjectName;
   const userId = req.params.userId;
 
@@ -254,7 +282,7 @@ app.get('/api/attendanceMarkerIdfetcher/:SubjectName/:userId', async (req, res) 
 });
 
 app.get('/api/reset/:SubjectName/:userId', async (req, res) => {
-  mongoose.connect(process.env.MONGO_URL)
+  
   const SubjectName = req.params.SubjectName;
   const userId = req.params.userId;
   
@@ -293,7 +321,7 @@ app.get('/api/reset/:SubjectName/:userId', async (req, res) => {
 
 
 app.get('/api/timetableId/:SubjectName/:userId',async(req,res)=>{
-  mongoose.connect(process.env.MONGO_URL)
+  
   const SubjectName = req.params.SubjectName;
   const userId = req.params.userId;
 
@@ -320,7 +348,7 @@ app.get('/api/timetableId/:SubjectName/:userId',async(req,res)=>{
  
 })
 app.get('/api/subjectDelete/:subjectName/:userId', async (req, res) => {
-  mongoose.connect(process.env.MONGO_URL)
+  
   const subjectName = req.params.subjectName;
   const userId = req.params.userId;
   try {
@@ -353,7 +381,7 @@ app.get('/api/subjectDelete/:subjectName/:userId', async (req, res) => {
 
 
  app.put('/api/users/:id', async (req, res) => {
-  mongoose.connect(process.env.MONGO_URL)
+  
   const { id } = req.params;
   const { email, userName, address , phoneNumber } = req.body;
 
@@ -399,7 +427,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 app.post('/api/upload-profile-picture/:userId', upload.single('profilePicture'), async (req, res) => {
-  mongoose.connect(process.env.MONGO_URL)
+  
   try {
     const userId = req.params.userId;
     
@@ -429,7 +457,7 @@ app.post('/api/upload-profile-picture/:userId', upload.single('profilePicture'),
 });
 
 app.get('/api/timetableDelete/:timetableId', async(req,res)=>{
-  mongoose.connect(process.env.MONGO_URL)
+  
   const timetableId=req.params.timetableId
   const result=await Timetable.findByIdAndDelete(timetableId)
   if(result){
@@ -441,7 +469,7 @@ app.get('/api/timetableDelete/:timetableId', async(req,res)=>{
 })
 
 app.put('/api/present/:subjectId', async (req, res) => {
-  mongoose.connect(process.env.MONGO_URL)
+  
   const subjectId = req.params.subjectId;
   const subject = await Subjects.findById(subjectId);
   // console.log(subject)
@@ -456,7 +484,7 @@ app.put('/api/present/:subjectId', async (req, res) => {
   res.json(updatedSubject); // Send the updated subject as the response
 });
 app.put('/api/undo/:subjectId/:isPresent', async (req, res) => {
-  mongoose.connect(process.env.MONGO_URL)
+  
   const subjectId = req.params.subjectId;
   
   const isPresent = req.params.isPresent;
@@ -485,7 +513,7 @@ app.put('/api/undo/:subjectId/:isPresent', async (req, res) => {
 
 
 app.put('api/absent/:subjectId', async (req, res) => {
-  mongoose.connect(process.env.MONGO_URL)
+  
   const subjectId = req.params.subjectId;
   const subject = await Subjects.findById(subjectId);
   // console.log(subject)
@@ -503,8 +531,6 @@ app.put('api/absent/:subjectId', async (req, res) => {
 
 
 
-if(process.env.API_PORT){
-  app.listen(process.env.API_PORT)
-}
+
 
 
