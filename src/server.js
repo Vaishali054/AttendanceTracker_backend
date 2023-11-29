@@ -1,12 +1,7 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
-require('../db/config')
-const mongoose=require('mongoose')
-const User=require("../db/user");
-const Timetable=require('../db/timetable')
-const Subjects=require('../db/subjects');
-const Attendance=require('../db/attendance');
+const mongoose=require('mongoose');
 const axios = require('axios');
 const dotenv= require('dotenv')
 dotenv.config()
@@ -525,10 +520,3 @@ app.put('api/absent/:subjectId', async (req, res) => {
 
   res.json(updatedSubject); // Send the updated subject as the response
 });
-
-
-
-
-
-
-

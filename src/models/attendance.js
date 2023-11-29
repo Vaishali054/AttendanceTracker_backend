@@ -1,6 +1,6 @@
 const mongoose =require('mongoose');
 
-const userSchema=new mongoose.Schema({
+const AttendanceSchema=new mongoose.Schema({
     userId:String,
     timetableId:String,
     date:Date,
@@ -9,4 +9,4 @@ const userSchema=new mongoose.Schema({
     subjectId:String
 });
 
-module.exports=mongoose.model("attendance",userSchema)
+module.exports=mongoose.model("Attendance",AttendanceSchema)
