@@ -1,6 +1,6 @@
 const mongoose =require('mongoose');
 
-const AdminSchema=new mongoose.Schema({
+const UserSchema=new mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -65,4 +65,4 @@ const AdminSchema=new mongoose.Schema({
 
 const Users=mongoose.model("Users",AdminSchema)
 
-export default Admins
+export default Users
