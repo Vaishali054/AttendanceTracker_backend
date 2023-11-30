@@ -63,6 +63,5 @@ const UserSchema=new mongoose.Schema({
   }]
 });
 
-const Users=mongoose.model("Users",AdminSchema)
+module.exports=mongoose.model("Users",UserSchema)
 
-export default Users
