@@ -36,7 +36,7 @@ const UserSchema=new mongoose.Schema({
   },
   OTP: {
     type: String,
-    required: true,
+   default: null
   },
   OTP_Attempt: {
     type: Number,
@@ -54,7 +54,7 @@ const UserSchema=new mongoose.Schema({
     subject: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Subjects',
-      required: true
+      default: null,
     },
     classesAttended: {
       type: Number,
