@@ -1,6 +1,6 @@
-import { z } from "zod";
+const z = require('zod');
 
-export const adminSignupInputSchema = z.object({
+const adminSignupInputSchema = z.object({
   name: z
     .string()
     .min(3, "Name must be at least 3 characters long")
@@ -16,7 +16,7 @@ export const adminSignupInputSchema = z.object({
     .max(100, "Password can't exceed 100 characters"),
 });
 
-export const adminLoginInputSchema = z.object({
+const adminLoginInputSchema = z.object({
   email: z
     .string()
     .min(5, "Email must be at least 5 characters long")
@@ -26,3 +26,5 @@ export const adminLoginInputSchema = z.object({
     .min(8, "Password must be at least 8 characters long")
     .max(100, "Password can't exceed 100 characters"),
 });
+
+module.exports= { adminSignupInputSchema, adminLoginInputSchema };
