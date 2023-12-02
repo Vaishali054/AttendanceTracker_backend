@@ -11,7 +11,7 @@ exports.getUser=async(req,res)=>{
             userData = { ...userData.toObject(), role: "admin" };
           }
         } else {
-          userData = await Users.findById(user.id).populate("subjects");
+          userData = await Users.findById(user.id).populate("sem");
           if (userData) {
             userData = { ...userData.toObject(), role: "user" };
           }
