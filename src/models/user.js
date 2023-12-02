@@ -50,17 +50,9 @@ const UserSchema=new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  subjects: [{
-    subject: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Subjects',
-      default: null,
-    },
-    classesAttended: {
-      type: Number,
-      default: 0
-    }
-  }]
+  sem:{
+    type:mongoose.Schema.Types.ObjectId,
+  }
 });
 
 module.exports=mongoose.model("Users",UserSchema)

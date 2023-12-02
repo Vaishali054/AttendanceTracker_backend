@@ -1,21 +1,28 @@
 const mongoose=require('mongoose');
 
 const SubjectSchema =new mongoose.Schema({
-    subjectName:{
-        type: String,
-        required: true,
+    subjects: [{
+        subjectName: {
+          type: String,
+          default: null,
+        },
+        totalClasses: {
+            type: Number,
+            default: 0
+          }
+      }],
+    
+    Sem:{
+        type:Number
     },
     
-    sem:[{
-        type:mongoose.Schema.Types.ObjectId,
+    Branch:{
+        type:String,
         required:true,
-        ref:""
-    }],
+        
+    }
 
-    totalClasses: {
-        type: Number,
-        default: 0
-      }
+    
 
    
 })
