@@ -49,4 +49,19 @@ const addBranch = async (req, res) => {
   }
 };
 
-module.exports = { addBranch };
+// Controller function to fetch all branches
+const getAllBranches = async (req, res) => {
+  try {
+    const user = req.body.user;
+
+    if (!user?.role || user.role !== "admin") {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+    const branches = await Subjects.find({}, 'Branch').distinct('Branch');
+    res.json({ branches });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+module.exports = { addBranch ,getAllBranches};
