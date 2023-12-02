@@ -1,10 +1,12 @@
 const jwt = require('jsonwebtoken');
 
 exports.authenticateJWT = async (req, res, next) => {
+  
   const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : '';
+  
 
   if (!token) {
-    res.status(403).json({ message: 'Unauthorized' });
+    res.status(403).json({ message: 'Unauthorized due to token' });
     return;
   }
 
@@ -18,7 +20,7 @@ exports.authenticateJWT = async (req, res, next) => {
     try {
       data = jwt.verify(token, process.env.JWT_AUTH_SECRET);
     } catch (err) {
-      res.status(403).json({ message: 'Unauthorized' });
+      res.status(403).json({ message: 'Unauthorized due to verify token' });
       return;
     }
 
