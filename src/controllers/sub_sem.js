@@ -64,4 +64,41 @@ const getAllBranches = async (req, res) => {
   }
 };
 
-module.exports = { addBranch ,getAllBranches};
+const addSubjects = async (req, res) => {
+  try {
+    const { subject, Sem, Branch } = req.body;
+
+    if (!subject || !Sem || !Branch) {
+      return res.status(400).json({ message: 'Please provide subject, Sem, and Branch.' });
+    }
+
+    // Find a document that matches the branch and semester
+    const existingSubjects = await Subjects.findOne({ Branch, Sem });
+
+    if (!existingSubjects) {
+      return res.status(404).json({ message: 'Branch not found' });
+    }
+
+    // Check if the subject already exists in the subjects array
+    const isSubjectExists = existingSubjects.subjects.some(
+      sub => sub.subjectName.toLowerCase() === subject.toLowerCase()
+    );
+
+    if (isSubjectExists) {
+      return res.status(400).json({ message: 'Subject already exists for the provided Branch and Sem.' });
+    }
+
+    // If the subject doesn't exist, add it to the subjects array
+    existingSubjects.subjects.push({ subjectName: subject, totalClasses: 0 });
+
+    // Save the updated document
+    const updatedSubjects = await existingSubjects.save();
+
+    res.status(200).json({ message: 'Subjects updated successfully.', updatedSubjects });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update subjects.', error: error.message });
+  }
+};
+
+
+module.exports = { addBranch ,getAllBranches,addSubjects};
