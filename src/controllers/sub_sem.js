@@ -100,5 +100,25 @@ const addSubjects = async (req, res) => {
   }
 };
 
+const getSubjects=async(req,res)=>{
+  try {
+    const { Sem, Branch } = req.body; // Assuming semester and branch are query parameters
 
-module.exports = { addBranch ,getAllBranches,addSubjects};
+    if (!Sem || !Branch) {
+      return res.status(400).json({ error: 'Semester and branch are required.' });
+    }
+
+    const subjects = await Subjects.find({ Sem: Sem, Branch: Branch });
+
+    if (!subjects || subjects.length === 0) {
+      return res.status(404).json({ error: 'No subjects found for the given semester and branch.' });
+    }
+
+    return res.status(200).json({ subjects });
+  } catch (error) {
+    return res.status(500).json({ error: 'Internal server error.' });
+  }
+}
+
+
+module.exports = { addBranch ,getAllBranches,addSubjects,getSubjects};
