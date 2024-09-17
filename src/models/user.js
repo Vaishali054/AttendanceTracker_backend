@@ -14,22 +14,6 @@ const UserSchema=new mongoose.Schema({
     type: String,
     required: true,
   },
-    
-    phoneNumber:{
-      type :String,
-      default : null
-      
-    },
-    address:{
-      type:String,
-      default : null
-    
-  },
-  profilePicture:{
-    type:String,
-    default:null
-  },
-
   verified: {
     type: Boolean,
     default: false,
@@ -52,6 +36,11 @@ const UserSchema=new mongoose.Schema({
   },
   sem:{
     type:mongoose.Schema.Types.ObjectId,
+    ref:'Semester'
+  },
+  dept:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:'Department'
   }
 });
 
