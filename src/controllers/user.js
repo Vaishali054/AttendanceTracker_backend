@@ -1,15 +1,16 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const Users = require("../models/user");
-const sendMail = require("./sendMail");
+// const sendMail = require("./sendMail");
 const {
   userLoginInputSchema,
   userSignupInputSchema,
 } = require("../validation/user");
 
 const handleUserSignup = async (req, res) => {
+  const {role}=req.query;
   const bodyData = req.body;
-
+console.log(bodyData)
   const isValidInput = userSignupInputSchema.safeParse(bodyData);
 
   if (!isValidInput.success) {
@@ -29,7 +30,6 @@ const handleUserSignup = async (req, res) => {
       res.status(409).json({ message: "Email address is already in use." });
       return;
     }
-
     if (!process.env.JWT_AUTH_SECRET || !process.env.JWT_OTP_SECRET) {
       throw new Error("JWT_SECRET environment variable is not defined.");
     }
