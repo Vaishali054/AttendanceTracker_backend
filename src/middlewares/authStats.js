@@ -13,8 +13,6 @@ const validateStats = async (req, res, next) => {
         ...userDetail,
         name: user?.name,
         email: user?.email,
-        OTP: user?.OTP,
-        verified: user?.verified,
       };
     } else {
       user = await Users.findById(userDetail.id);
@@ -35,13 +33,8 @@ const validateStats = async (req, res, next) => {
       return;
     }
 
-    if (user.incorrectAttempt >= 7 || user.OTP_Attempt >= 10) {
-      if (userDetail.role === "admin") {
-        await Admins.updateOne({ _id: user._id }, { banned: true });
-      } else {
+    if (userDetail.role !== "admin" && user.incorrectAttempt >= 7 || user.OTP_Attempt >= 10) {
         await Users.updateOne({ _id: user._id }, { banned: true });
-      }
-
       res.status(403).json({
         message: "Too many OTP attempts, the account is Banned!",
       });
