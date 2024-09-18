@@ -1,15 +1,16 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const Admins = require('../models/admin');
+const Degree = require('../models/degree');
 const { adminLoginInputSchema, adminSignupInputSchema } = require('../validation/admin');
-const {AdminLoginData,AdminSignupData}=require('../types/admin')
+const { AdminLoginData, AdminSignupData } = require('../types/admin');
 
 exports.handleAdminLogin = async (req, res) => {
   const bodyData = req.body;
-  console.log(bodyData)
+  console.log(bodyData);
 
   const isValidInput = adminLoginInputSchema.safeParse(bodyData);
-  console.log(isValidInput)
+  console.log(isValidInput);
 
   if (!isValidInput.success) {
     res.status(400).json({
@@ -55,16 +56,82 @@ exports.handleAdminLogin = async (req, res) => {
     const token = jwt.sign(
       { id: admin._id, role: 'admin' },
       process.env.JWT_AUTH_SECRET,
-      {
-        expiresIn: '1h',
-      }
+      { expiresIn: '1h' }
     );
 
-    res.status(200).json({ message: 'Logged successfully', authToken: token , success: true});
+    res.status(200).json({ message: 'Logged successfully', authToken: token, success: true });
   } catch (err) {
-    res
-      .status(500)
-      .json({success:false, message: 'Internal server error during admin login' });
+    res.status(500).json({ success: false, message: 'Internal server error during admin login' });
+    console.log(err);
+  }
+};
+
+exports.addDegree = async (req, res) => {
+  const user = req.body.user;
+
+  if (user && user.role !== "admin") {
+    res.status(500).json({ success: false, message: 'User is not authorized' });
+    return;
+  }
+
+  const finddegree = req.body.degree;
+
+  try {
+    const degree = await Degree.findOne({ degree: finddegree });
+
+    if (degree) {
+      res.status(500).json({ success: false, message: 'Degree already exists' });
+      return;
+    }
+
+    const newdegree = new Degree({
+      degree: req.body.degree,
+      totalSemester: req.body.totalSemester,
+    });
+
+    await newdegree.save();
+
+    res.status(201).json({ message: "Degree added successfully", newdegree });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Internal server error during degree addition" });
+    console.log(err);
+  }
+};
+
+exports.getDegree = async (req, res) => {
+  try {
+    const degrees = await Degree.find();
+    res.status(200).json({ message: "Degree fetched successfully", degrees });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching degrees" });
+    console.log(err);
+  }
+};
+
+exports.editDegree = async (req, res) => {
+  const role = req.body.user.role;
+
+  if (role !== "admin") {
+    res.status(500).json({ message: "User is not authorized" });
+    return;
+  }
+
+  const _id = req.body._id;
+  const updateData = req.body;
+
+  try {
+    const updateDegree = await Degree.findByIdAndUpdate(_id, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (updateDegree) {
+      res.status(201).json({ message: "Degree updated successfully", updateDegree });
+    } else {
+      res.status(404).json({ message: "Degree not found" });
+    }
+  } catch (err) {
+    res.status(500).json({ message: "Internal server error during degree update", error: err });
     console.log(err);
   }
 };
