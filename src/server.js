@@ -1,4 +1,5 @@
 const AuthRouter = require('./routes/auth');
+const AdminRouter=require('./routes/admin')
 const express = require('express');
 const app = express();
 const cors = require('cors');
@@ -46,3 +47,4 @@ app.get("/", (req, res) => {
 
 
 app.use("/auth", AuthRouter)
+app.use("/admin",AdminRouter)
