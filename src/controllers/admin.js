@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const Admins = require('../models/admin');
 const Degree = require('../models/degree');
+const Department=require('../models/department')
 const { adminLoginInputSchema, adminSignupInputSchema } = require('../validation/admin');
 const { AdminLoginData, AdminSignupData } = require('../types/admin');
 
@@ -135,3 +136,75 @@ exports.editDegree = async (req, res) => {
     console.log(err);
   }
 };
+
+exports.addDepartment = async (req, res) => {
+  const user = req.body.user;
+
+  if (user && user.role !== "admin") {
+    res.status(500).json({ success: false, message: 'User is not authorized' });
+    return;
+  }
+
+  const finddepartment = req.body.department;
+
+  try {
+    const department = await Department.findOne({ department:finddepartment });
+
+    if (department) {
+      res.status(500).json({ success: false, message: 'Department already exists' });
+      return;
+    }
+
+    const newdepartment = new Department({
+      department: req.body.department,
+      degreeOffered: req.body.degreeOffered, 
+    });
+
+    await newdepartment.save();
+
+    res.status(201).json({ message: "Department added successfully", newdepartment });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Internal server error during department addition" });
+    console.log(err);
+  }
+};
+
+exports.getDepartments = async (req, res) => {
+  try {
+    const departments = await Department.find().populate('degreeOffered');
+    res.status(200).json({ message: "Departments fetched successfully", departments });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching departments" });
+    console.log(err);
+  }
+};
+
+exports.editDepartment = async (req, res) => {
+  const role = req.body.user.role;
+
+  if (role !== "admin") {
+    res.status(500).json({ message: "User is not authorized" });
+    return;
+  }
+
+  const _id = req.body._id;
+  const updateData = req.body;
+
+  try {
+    const updateDepartment = await Department.findByIdAndUpdate(_id, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (updateDepartment) {
+      res.status(201).json({ message: "Department updated successfully", updateDepartment });
+    } else {
+      res.status(404).json({ message: "Department not found" });
+    }
+  } catch (err) {
+    res.status(500).json({ message: "Internal server error during department update", error: err });
+    console.log(err);
+  }
+};
+
+
