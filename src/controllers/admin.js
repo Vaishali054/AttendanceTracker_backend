@@ -165,6 +165,36 @@ exports.addDepartment = async (req, res) => {
 
     await newdepartment.save();
 
+    const semesterPromises = req.body.degreeOffered.map(async (degree) => {
+      try {
+        console.log(degree)
+        const degreeInfo = await Degree.findById(degree); 
+
+        if (!degreeInfo) {
+          throw new Error(`Degree with ID ${degree._id} not found`);
+        }
+
+        const totalSemesters = degreeInfo.totalSemester; 
+        const semesterCreationPromises = [];
+
+        for (let i = 1; i <= totalSemesters; i++) {
+          const newSemester = new Semester({
+            department: newdepartment._id, 
+            degree: degreeInfo._id, 
+            semester: i,
+          });
+          semesterCreationPromises.push(newSemester.save());
+        }
+
+        return Promise.all(semesterCreationPromises);
+      } catch (err) {
+        throw new Error(`Error fetching degree with ID ${degree._id}: ${err.message}`);
+      }
+    });
+
+    await Promise.all(semesterPromises); 
+
+
     res.status(201).json({ message: "Department added successfully", newdepartment });
   } catch (err) {
     res.status(500).json({ success: false, message: "Internal server error during department addition" });
