@@ -26,17 +26,9 @@ const validateStats = async (req, res, next) => {
       };
     }
 
-    if (!user || user.banned) {
+    if (!user ) {
       res.status(403).json({
-        message: `The ${userDetail.role} account is ${user ? "banned" : "deleted"}.`,
-      });
-      return;
-    }
-
-    if (userDetail.role !== "admin" && user.incorrectAttempt >= 7 || user.OTP_Attempt >= 10) {
-        await Users.updateOne({ _id: user._id }, { banned: true });
-      res.status(403).json({
-        message: "Too many OTP attempts, the account is Banned!",
+        message: `The ${userDetail.role} account is deleted.`,
       });
       return;
     }
