@@ -1,71 +1,79 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const Users = require("../models/user");
-// const sendMail = require("./sendMail");
+const Semester=require("../models/sem")
+
 const {
   userLoginInputSchema,
   userSignupInputSchema,
 } = require("../validation/user");
 
 const handleUserSignup = async (req, res) => {
-  const {role}=req.query;
   const bodyData = req.body;
-console.log(bodyData)
   const isValidInput = userSignupInputSchema.safeParse(bodyData);
 
   if (!isValidInput.success) {
-    res.status(400).json({
+    return res.status(400).json({
       message: isValidInput.error.issues[0].message,
       error: isValidInput.error,
     });
-    return;
   }
 
-  const { name, email, password } = isValidInput.data;
+  const { name, email, password, semester, department, degree } = isValidInput.data;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@nith.ac.in$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ success: false, message: 'Only emails with the domain "nith.ac.in" are allowed' });
+  }
 
   try {
     const user = await Users.findOne({ email });
 
     if (user) {
-      res.status(409).json({ message: "Email address is already in use." });
-      return;
-    }
-    if (!process.env.JWT_AUTH_SECRET || !process.env.JWT_OTP_SECRET) {
-      throw new Error("JWT_SECRET environment variable is not defined.");
-    }
-
-    // const OTP = Math.floor(100000 + Math.random() * 900000);
-    // await sendMail(email, OTP);
-
-    // const OTP_token = jwt.sign({ OTP: OTP }, process.env.JWT_OTP_SECRET, {
-    //   expiresIn: '5m',
-    // });
-    const encrypted_Pswd = await bcrypt.hash(password, 11);
-
-    const newUser = new Users({
-      name,
-      email,
-      password: encrypted_Pswd,
-      // OTP: OTP_token,
-      OTP_Attempt: 1,
-    });
-    await newUser.save();
-
-    const token = jwt.sign(
-      { id: newUser._id, role: "user" },
-      process.env.JWT_AUTH_SECRET,
-      {
-        expiresIn: "1h",
+      if (!user.verified) {
+        return res.status(409).json({ message: "User is not verified. Please verify your email first." });
       }
+
+      const encrypted_Pswd = await bcrypt.hash(password, 11);
+      user.name = name;
+      user.password = encrypted_Pswd;
+      user.semester = req.body.semester;
+      user.department = req.body.department;
+      user.role = req.body.role;
+      user.degree=req.body.degree;
+      await user.save();
+    } else {
+      const encrypted_Pswd = await bcrypt.hash(password, 11);
+      const newUser = new Users({
+        name,
+        email,
+        password: encrypted_Pswd,
+        semester:req.body.semester,
+        department: req.body.department,
+        role: req.body.role,
+        degree:req.body.degree,
+      });
+      await newUser.save();
+    }
+   
+    const semester=req.body.semester;
+    await Semester.findOneAndUpdate(
+      { _id: semester }, 
+      { $inc: { totalStudents: 1 } }, 
+      { new: true } 
     );
+    const token = jwt.sign(
+      { id: user ? user._id : newUser._id, role: "user" },
+      process.env.JWT_AUTH_SECRET,
+      { expiresIn: "1h" }
+    );
+
     res.status(201).json({ message: "Signed successfully", authToken: token });
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Internal server error during user signup" });
+    res.status(500).json({ message: "Internal server error during user signup" });
     console.log(err);
   }
 };
+
 
 const handleUserLogin = async (req, res) => {
   const bodyData = req.body;
@@ -89,11 +97,6 @@ const handleUserLogin = async (req, res) => {
       res
         .status(404)
         .json({ message: `The user with the email ${email} does not exist.` });
-      return;
-    }
-
-    if (user.banned) {
-      res.status(403).json({ message: `User ${email} is banned.` });
       return;
     }
 

@@ -13,7 +13,7 @@ AuthRouter.post('/signup', handleUserSignup);
 AuthRouter.post('/login', (req, res) => {
   const { role } = req.query;
 
-  if (role === 'user') handleUserLogin(req, res);
+  if (role === 'Student' || role==='Teacher') handleUserLogin(req, res);
   else if (role === 'admin') handleAdminLogin(req, res);
   else res.status(404).json({ message: 'Role is not defined' });
 });
