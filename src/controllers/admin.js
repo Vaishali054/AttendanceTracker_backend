@@ -1,10 +1,13 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const mongoose = require('mongoose');
 const Admins = require('../models/admin');
 const Degree = require('../models/degree');
 const Department=require('../models/department')
+const Semester=require('../models/sem')
 const { adminLoginInputSchema, adminSignupInputSchema } = require('../validation/admin');
 const { AdminLoginData, AdminSignupData } = require('../types/admin');
+const sem = require('../models/sem');
 
 exports.handleAdminLogin = async (req, res) => {
   const bodyData = req.body;
@@ -206,5 +209,77 @@ exports.editDepartment = async (req, res) => {
     console.log(err);
   }
 };
+
+exports.addSemester = async (req, res) => {
+  const user = req.body.user;
+
+  if (user && user.role !== "admin") {
+    res.status(500).json({ success: false, message: 'User is not authorized' });
+    return;
+  }
+
+  const departementId =req.body.department;
+  const degreeId=req.body.degree;
+  const findsem=req.body.semester;
+  try {
+    const semester = await Semester.findOne({ department:departementId, degree:degreeId,semester:findsem });
+    console.log(semester)
+    if (semester) {
+      res.status(500).json({ success: false, message: 'Semester already exists' });
+      return;
+    }
+
+    const newSemester = new Semester({
+      department: req.body.department,
+      degree: req.body.degree, 
+      semester:req.body.semester,
+    });
+
+    await newSemester.save();
+
+    res.status(201).json({ message: "Semester added successfully", newSemester });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Internal server error during semester addition" });
+    console.log(err);
+  }
+};
+
+exports.getSemester = async (req, res) => {
+  try {
+    const semesters = await Semester.find().populate('degree','department');
+    res.status(200).json({ message: "Semesters fetched successfully", semesters });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching semesters" });
+    console.log(err);
+  }
+};
+
+exports.deleteSemester = async (req, res) => {
+  const user = req.body.user;
+
+  if (user && user.role !== 'admin') {
+    return res.status(403).json({ success: false, message: 'User is not authorized' });
+  }
+
+  try {
+    const semesterId = req.body.semester;
+
+    if (!mongoose.Types.ObjectId.isValid(semesterId)) {
+      return res.status(400).json({ success: false, message: 'Invalid Semester ID' });
+    }
+
+    const semester = await Semester.findByIdAndDelete(semesterId);
+
+    if (semester) {
+      return res.status(200).json({ success: true, message: 'Semester deleted successfully', semester });
+    } else {
+      return res.status(404).json({ success: false, message: 'Semester not found' });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: 'Internal server error during semester deletion' });
+  }
+};
+
 
 
