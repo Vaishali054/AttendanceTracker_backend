@@ -3,7 +3,6 @@ const mongoose =require('mongoose');
 const UserSchema=new mongoose.Schema({
   name: {
     type: String,
-    required: true,
   },
   email: {
     type: String,
@@ -12,7 +11,6 @@ const UserSchema=new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
   },
   verified: {
     type: Boolean,
@@ -22,25 +20,20 @@ const UserSchema=new mongoose.Schema({
     type: String,
    default: null
   },
-  OTP_Attempt: {
-    type: Number,
-    default: 0,
-  },
-  incorrectAttempt: {
-    type: Number,
-    default: 0,
-  },
-  banned: {
-    type: Boolean,
-    default: false,
-  },
-  sem:{
+  semester:{
     type:mongoose.Schema.Types.ObjectId,
     ref:'Semester'
   },
-  dept:{
+  department:{
     type:mongoose.Schema.Types.ObjectId,
     ref:'Department'
+  },
+  role:{
+    type:String,
+  },
+  degree:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:'Degree'
   }
 });
 
