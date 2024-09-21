@@ -5,71 +5,65 @@ const Semester=require("../models/sem")
 
 const {
   userLoginInputSchema,
-  userSignupInputSchema,
 } = require("../validation/user");
 
 const handleUserSignup = async (req, res) => {
-  const bodyData = req.body;
-  const isValidInput = userSignupInputSchema.safeParse(bodyData);
-
-  if (!isValidInput.success) {
-    return res.status(400).json({
-      message: isValidInput.error.issues[0].message,
-      error: isValidInput.error,
-    });
-  }
-
-  const { name, email, password, semester, department, degree } = isValidInput.data;
   const emailRegex = /^[a-zA-Z0-9._%+-]+@nith.ac.in$/;
-  if (!emailRegex.test(email)) {
+  if (!emailRegex.test(req.body.email)) {
     return res.status(400).json({ success: false, message: 'Only emails with the domain "nith.ac.in" are allowed' });
   }
 
   try {
+    const email=req.body.email;
     const user = await Users.findOne({ email });
+    const semesterdoc = await Semester.findOne({
+      degree: req.body.degree,
+      department: req.body.department,
+      semester: req.body.semester,  
+    });
+
+    const encrypted_Pswd = await bcrypt.hash(req.body.password, 11);
 
     if (user) {
       if (!user.verified) {
-        return res.status(409).json({ message: "User is not verified. Please verify your email first." });
+        return res.status(409).json({success:false, message: "User is not verified. Please verify your email first." });
       }
 
-      const encrypted_Pswd = await bcrypt.hash(password, 11);
-      user.name = name;
+      user.name =req.body.name;
       user.password = encrypted_Pswd;
-      user.semester = req.body.semester;
+      user.semester = semesterdoc._id;
       user.department = req.body.department;
       user.role = req.body.role;
       user.degree=req.body.degree;
       await user.save();
     } else {
-      const encrypted_Pswd = await bcrypt.hash(password, 11);
       const newUser = new Users({
-        name,
-        email,
+        name: req.body.name,
+        email: req.body.email,
         password: encrypted_Pswd,
-        semester:req.body.semester,
+        semester: semesterdoc._id,
         department: req.body.department,
         role: req.body.role,
         degree:req.body.degree,
       });
       await newUser.save();
     }
-   
-    const semester=req.body.semester;
+
+
     await Semester.findOneAndUpdate(
-      { _id: semester }, 
+      { _id: semesterdoc._id }, 
       { $inc: { totalStudents: 1 } }, 
       { new: true } 
     );
     const token = jwt.sign(
-      { id: user ? user._id : newUser._id, role: "user" },
+      { id: user ? user._id : newUser._id, role: "student" },
       process.env.JWT_AUTH_SECRET,
       { expiresIn: "1h" }
     );
 
-    res.status(201).json({ message: "Signed successfully", authToken: token });
+    res.status(200).json({success:true, message: "Signed successfully", authToken: token });
   } catch (err) {
-    res.status(500).json({ message: "Internal server error during user signup" });
+    res.status(500).json({sucesss:false, message: "Internal server error during user signup" });
     console.log(err);
   }
 };
